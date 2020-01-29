@@ -1,42 +1,39 @@
 from django.http import JsonResponse, HttpResponse
+from django.views import View
+from django.views.generic import UpdateView
 from django.views.decorators.csrf import csrf_exempt
 from tasks.models import Todo
-from rest_framework.parsers import JSONParser
-from tasks.serializers import TaskSerializer 
-import q
+import json
 
-@csrf_exempt
-def api_CR(request):
-    if request.method == 'GET':
-        tasks = [task.to_dict() for task in Todo.objects.all()]
-        # tasks = Todo.objects.all()
-        # serializer = TaskSerializer(tasks, many=True)
+
+class API_CRUD(UpdateView, View):
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        return super(API_CRUD, self).dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        if 'pk' in kwargs:
+            pk = kwargs['pk']
+            tasks = [Todo.objects.get(id=pk).to_dict()]
+        else:
+            tasks = [task.to_dict() for task in Todo.objects.all()]
         return JsonResponse({'tasks': tasks})
-
-    elif request.method == 'POST':
-        data = JSONParser().parse(request)
-        serializer = TaskSerializer(data=data)
-        # q.d()
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data, status=201)
-        return JsonResponse(serializer.errors, status=400)
-
-@csrf_exempt
-def api_UD(request, uid):
-    try:
-        task = Todo.objects.get(pk=uid)
-    except Todo.DoesNotExist:
-        return HttpResponse(status=404)
     
-    if request.method == 'PUT':
-        data = JSONParser().parse(request)
-        serializer = TaskSerializer(task, data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data)
-        return JsonResponse(serializer.errors, status=400)
+    def post(self, request, *args, **kwargs):
+        params = json.loads(request.body)
+        task = Todo(**params)
+        task.save()
+        return HttpResponse('OK')
 
-    if request.method == 'DELETE':
-        task.delete()
-        return HttpResponse(status=204)
+    def put(self, request, *args, **kwargs):
+        pk = kwargs['pk']
+        params = json.loads(request.body)
+        task = Todo(id=pk, **params)
+        task.save()
+        return HttpResponse(status=201)
+
+    def delete(self, request, *args, **kwargs):
+        pk = kwargs['pk']
+        Todo.objects.get(id=pk).delete()
+        return HttpResponse(status=201)
+
