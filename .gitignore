@@ -19,3 +19,9 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+
+db.sqlite3
+.vscode/
+venv-back/
+__pycache__/
+migrations/
