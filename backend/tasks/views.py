@@ -23,7 +23,7 @@ class API_CRUD(UpdateView, View):
         params = json.loads(request.body)
         task = Todo(**params)
         task.save()
-        return HttpResponse('OK')
+        return HttpResponse(status=201)
 
     def put(self, request, *args, **kwargs):
         pk = kwargs['pk']
