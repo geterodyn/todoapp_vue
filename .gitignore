@@ -25,3 +25,4 @@ db.sqlite3
 venv-back/
 __pycache__/
 migrations/
+.env
